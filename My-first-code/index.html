@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Coding Journey</title>
+    <title>Forex Position & Risk Calculator</title>
     <style>
-        /* 1. This styles the background and font for the whole page */
         body {
-            background-color: #1e1e24; /* Dark sleek background */
-            color: #ffffff; /* Crisp white text */
+            background-color: #1e1e24;
+            color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -16,22 +15,28 @@
             margin: 0;
         }
 
-        /* 2. This creates a clean, centered container card for your calculator */
         .calculator-card {
-            background-color: #2a2a35; /* Slightly lighter card color */
+            background-color: #2a2a35;
             padding: 30px;
-            border-radius: 12px; /* Smooth rounded corners */
-            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3); /* Soft dropdown shadow */
+            border-radius: 12px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
             text-align: center;
             max-width: 400px;
-            width: 100%;
+            width: 90%;
         }
 
-        /* 3. This designs your inputs to look like a modern app */
+        label {
+            display: block;
+            text-align: left;
+            margin-left: 5%;
+            font-size: 14px;
+            color: #d0d0dc;
+        }
+
         input {
             width: 90%;
             padding: 10px;
-            margin-top: 8px;
+            margin-top: 5px;
             margin-bottom: 15px;
             border: 2px solid #4e4e61;
             border-radius: 6px;
@@ -40,9 +45,8 @@
             font-size: 16px;
         }
 
-        /* 4. This makes your button look sharp and interactive */
         button {
-            background-color: #28a745; /* Vibrant neon blue/teal button */
+            background-color: #28a745;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -52,40 +56,80 @@
             cursor: pointer;
             width: 95%;
             transition: 0.2s;
+            margin-top: 5px;
         }
 
         button:hover {
-            background-color: #007a80; /* Darkens slightly when you hover your mouse */
+            background-color: #1e7e34;
+        }
+
+        .results-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #1e1e24;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            display: none; /* Hidden until you click Calculate */
+        }
+
+        .results-box p {
+            margin: 8px 0;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
 
-    <!-- We wrapped your inputs inside a single card container -->
     <div class="calculator-card">
         <h1>Forex Risk Calculator</h1>
-        <p style="color: #a0a0b0;">Built by Architect Anene Chinonso</p>
+        <p style="color: #a0a0b0; margin-top: -10px;">Built by Architect Anene Chinonso</p>
         <hr style="border: 1px solid #4e4e61; margin-bottom: 20px;">
 
-        <label for="balanceInput">Enter Account Balance ($): </label>
+        <label for="balanceInput">Account Balance ($):</label>
         <input type="number" id="balanceInput" placeholder="e.g. 5000">
 
-        <label for="riskInput">Enter Risk Percentage (%): </label>
-        <input type="number" id="riskInput" placeholder="e.g. 2" step="0.01">
+        <label for="riskInput">Risk Percentage (%):</label>
+        <input type="number" id="riskInput" placeholder="e.g. 1" step="0.01">
+
+        <label for="stopLossInput">Stop Loss (Pips):</label>
+        <input type="number" id="stopLossInput" placeholder="e.g. 20">
+
+        <label for="rrInput">Reward Ratio (1 to X):</label>
+        <input type="number" id="rrInput" placeholder="e.g. 3" value="3" step="0.1">
         
-        <button onclick="calculateLiveRisk()">Calculate Risk</button>
-        <h2 id="riskResult" style="color: #00adb5; margin-top: 25px;"></h2>
+        <button onclick="calculateTradeSetup()">Calculate Setup</button>
+
+        <div id="resultsContainer" class="results-box">
+            <p id="lotOutput" style="font-size: 20px; font-weight: bold; color: #28a745;"></p>
+            <p id="riskOutput"></p>
+            <p id="rewardOutput"></p>
+        </div>
     </div>
 
     <script>
-        function calculateLiveRisk() {
-            let accountBalance = document.getElementById("balanceInput").value;
-            let riskPercent = document.getElementById("riskInput").value; 
-            
-            let amountToRisk = accountBalance * (riskPercent / 100);
-            let potentialReward = amountToRisk * 3;
+        function calculateTradeSetup() {
+            // 1. Grab all four values from the boxes
+            let balance = parseFloat(document.getElementById("balanceInput").value);
+            let riskPercent = parseFloat(document.getElementById("riskInput").value);
+            let stopLossPips = parseFloat(document.getElementById("stopLossInput").value);
+            let rewardRatio = parseFloat(document.getElementById("rrInput").value);
 
-            document.getElementById("riskResult").innerText = "Risk: $" + amountToRisk + " | Target Reward: $" + potentialReward;
+            // 2. Check if any box was left blank
+            if (isNaN(balance) || isNaN(riskPercent) || isNaN(stopLossPips) || stopLossPips <= 0) {
+                alert("Please enter valid numbers for Balance, Risk %, and Stop Loss!");
+                return;
+            }
+
+            // 3. Calculate Risk, Lot Size (standard $10/pip), and Reward
+            let amountToRisk = balance * (riskPercent / 100);
+            let lotSize = amountToRisk / (stopLossPips * 10);
+            let potentialReward = amountToRisk * rewardRatio;
+
+            // 4. Reveal the results box and display formatted numbers
+            document.getElementById("resultsContainer").style.display = "block";
+            document.getElementById("lotOutput").innerText = "Lot Size: " + lotSize.toFixed(2) + " Lots";
+            document.getElementById("riskOutput").innerText = "Risk Amount: $" + amountToRisk.toFixed(2);
+            document.getElementById("rewardOutput").innerText = "Target Reward: $" + potentialReward.toFixed(2);
         }
     </script>
 </body>
